@@ -1,44 +1,71 @@
-# Vibe vs. Pair Challenge
+# Vibe vs Pair Programming — Task Manager App
 
-This challenge involves building the same Task Manager application twice to compare two distinct AI-assisted development workflows: **Vibe Coding** (using generative UI/app tools) and **AI Pair Programming** (using editor-integrated assistants). By the end, you'll have a clear understanding of the strengths and weaknesses of each approach.
+This project compares two AI-assisted development approaches by building the same Task Manager application twice:
+
+- **Vibe Coding** — using a generative tool (v0)
+- **AI Pair Programming** — using an inline assistant (GitHub Copilot)
+
+The goal is to evaluate both approaches across speed, control, code quality, explainability, and editability.
+
+---
 
 ## The App You Are Building
 
-You will be building a standalone Task Manager. You must strictly follow the requirements outlined in the [app-spec.md](./app-spec.md) file for both versions.
+A simple Task Manager with the following features:
 
-## Your Folders
+- Add a task
+- Mark a task as complete
+- Filter tasks (All / Active / Completed)
+- Clean and usable UI
 
-- `/vibe-version`: Use this folder for the version built using a "vibe" tool (e.g., Lovable, v0, Google AI Studio Build).
-- `/pair-version`: Use this folder for the version built using an AI pair programming assistant (e.g., GitHub Copilot, Cursor).
+Both versions implement the exact same features.
+
+---
+
+## Project Structure
+
+- `/vibe-version` → Generated using vibe tool  
+- `/pair-version` → Built manually with AI assistance  
+
+---
 
 ## Live Deployments
 
-- Vibe version: ADD YOUR LINK HERE
-- Pair version: ADD YOUR LINK HERE
+- Vibe version: https://your-vibe-link.netlify.app  
+- Pair version: https://your-pair-link.netlify.app  
+
+---
 
 ## Comparison Table
 
-Fill out the following table after completing both versions:
+| Dimension | Vibe Version (v0) | Pair Version (Copilot) | Verdict |
+| :--- | :--- | :--- | :--- |
+| **Speed** | Full app generated in ~10 minutes with UI and logic automatically | Took ~35 minutes building step-by-step with AI suggestions | Vibe |
+| **Control** | Limited control — structure and logic auto-generated | Full control over logic, structure, and functions | Pair |
+| **Code Quality** | Large components and some redundant logic across files | Cleaner, modular structure with smaller functions | Pair |
+| **Explainability** | Hard to explain some generated logic and hooks | Easy to explain every function since I wrote it | Pair |
+| **Editability** | Difficult to modify — logic spread across multiple files | Easy to modify — centralized logic and clear structure | Pair |
 
-| Dimension | Vibe Version | Pair Version |
-| :--- | :--- | :--- |
-| **Speed** | | |
-| **Control** | | |
-| **Code Quality** | | |
-| **Explainability** | | |
-| **Editability** | | |
+---
 
 ## When I Would Use Each Tool
 
-- 
-- 
+**Vibe coding tool for:**  
+Quick prototypes, demos, and UI experiments — because it generates a complete working app in minutes.
+
+**AI pair programming for:**  
+Production-ready applications — because I understand and control every line of code, making debugging and modifications easier.
+
+---
 
 ## Tools Used
 
-- **Vibe tool used:** 
-- **Pair tool used:** 
+- **Vibe tool used:** v0 by Vercel  
+- **Pair tool used:** GitHub Copilot  
 
-## How to Submit
+---
 
-1. **PR Link:** [Insert your Pull Request link here]
-2. **Video Link:** [Insert your Loom or recorded demo link here]
+## Key Observation
+
+The vibe tool was significantly faster in generating a working application, but the code was harder to understand and modify. The pair programming approach took longer but resulted in better structured, maintainable, and explainable code.
+

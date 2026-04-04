@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Task Manager</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+    .completed {
+      text-decoration: line-through;
+      color: gray;
+    }
+    button {
+      margin-left: 10px;
+    }
+    .delete-btn {
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background-color: #ff5252;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Task Manager</h2>
+
+  <input type="text" id="taskInput" placeholder="Enter task">
+  <button onclick="addTask()">Add</button>
+
+  <br><br>
+
+  <select id="filter" onchange="filterTasks()">
+    <option value="all">All</option>
+    <option value="active">Active</option>
+    <option value="completed">Completed</option>
+  </select>
+
+  <ul id="taskList"></ul>
+
+<script>
+let tasks = [];
+let nextId = 1;
+
+function addTask() {
+  let input = document.getElementById("taskInput");
+  let value = input.value.trim();
+
+  if (value === "") {
+    alert("Please enter a task before adding.");
+    return;
+  }
+
+  tasks.push({ id: nextId++, title: value, completed: false });
+
+  input.value = "";
+  input.focus();
+  renderTasks();
+}
+
+function toggleTask(id) {
+  let task = tasks.find(t => t.id === id);
+  if (task) {
+    task.completed = !task.completed;
+    renderTasks();
+  }
+}
+
+function filterTasks() {
+  renderTasks();
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  renderTasks();
+}
+
+function shouldShowTask(task, filter) {
+  if (filter === "active" && task.completed) return false;
+  if (filter === "completed" && !task.completed) return false;
+  return true;
+}
+
+function createTaskElement(task) {
+  let li = document.createElement("li");
+  li.innerText = task.title;
+  
+  if (task.completed) {
+    li.classList.add("completed");
+  }
+  
+  li.onclick = () => toggleTask(task.id);
+  
+  let deleteBtn = document.createElement("button");
+  deleteBtn.innerText = "Delete";
+  deleteBtn.classList.add("delete-btn");
+  deleteBtn.onclick = (e) => {
+    e.stopPropagation();
+    deleteTask(task.id);
+  };
+  
+  li.appendChild(deleteBtn);
+  return li;
+}
+
+function renderTasks() {
+  let list = document.getElementById("taskList");
+  list.innerHTML = "";
+  
+  let filter = document.getElementById("filter").value;
+  
+  tasks
+    .filter(task => shouldShowTask(task, filter))
+    .forEach(task => {
+      list.appendChild(createTaskElement(task));
+    });
+}
+</script>
+
+</body>
+</html>
