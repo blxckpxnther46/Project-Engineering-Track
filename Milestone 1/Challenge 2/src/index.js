@@ -2,6 +2,7 @@ const express = require('express');
 const { callAI } = require('./callAI');
 const fs = require('fs');
 const path = require('path');
+const dotenv = require('dotenv').config();
 
 const app = express();
 app.use(express.json());
