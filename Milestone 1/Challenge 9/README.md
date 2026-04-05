@@ -13,9 +13,13 @@ This app allows creating, viewing, updating, and deleting items.
 ## Tech Stack
 - Backend: Node.js + Express
 - Frontend: Vanilla JS
-- Deployment: Render + Netlify
+- Deployment: Render + Github Pages
 
 ## How to Run
 cd backend
 npm install express cors dotenv
 node server.js
+
+## Live Deployment
+**Frontend:** https://blxckpxnther46.github.io/Project-Engineering-Track/Milestone%201/Challenge%209/frontend/
+**Backend:** https://crud-ship.onrender.com
