@@ -1,17 +1,16 @@
 {
-  "name": "backend",
+  "name": "challenge-9",
   "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "description": "A simple CRUD app to manage items.",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-    "dependencies": {
+  "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
