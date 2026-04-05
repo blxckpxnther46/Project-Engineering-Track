@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const fetch = require('node-fetch'); // ✅ FIX
 require('dotenv').config();
 
 const app = express();
@@ -33,6 +34,7 @@ app.post('/generate', async (req, res) => {
     res.json({ result });
 
   } catch (err) {
+    console.error(err); // 🔥 add this for debugging
     res.status(500).json({ error: "Failed" });
   }
 });
