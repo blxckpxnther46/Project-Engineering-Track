@@ -79,5 +79,5 @@ Monthly total:
 
 ## Live Deployment
 
-Frontend: https://your-app.netlify.app
-Backend: https://your-api.onrender.com
+Frontend: https://blxckpxnther46.github.io/Project-Engineering-Track/Milestone%201/Challenge%208/frontend/
+Backend: https://project-engineering-track.onrender.com/
