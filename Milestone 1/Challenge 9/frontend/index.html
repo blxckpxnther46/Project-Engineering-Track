@@ -12,35 +12,63 @@
   <ul id="list"></ul>
 
   <script>
+    // 🔥 CHANGE THIS TO YOUR RENDER URL
     const API = "https://crud-ship.onrender.com";
 
     async function fetchItems() {
       const res = await fetch(API + "/items");
       const data = await res.json();
+
       const list = document.getElementById("list");
       list.innerHTML = "";
+
       data.forEach(item => {
         const li = document.createElement("li");
+
         li.innerHTML = `
           ${item.name}
-          <button onclick="deleteItem(${item.id})">Delete</button>
+          <button onclick="editItem('${item._id}', '${item.name}')">Edit</button>
+          <button onclick="deleteItem('${item._id}')">Delete</button>
         `;
+
         list.appendChild(li);
       });
     }
 
     async function createItem() {
       const name = document.getElementById("name").value;
+
+      if (!name) return alert("Enter a name");
+
       await fetch(API + "/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name })
       });
+
+      document.getElementById("name").value = "";
+      fetchItems();
+    }
+
+    async function editItem(id, oldName) {
+      const newName = prompt("Edit item:", oldName);
+
+      if (!newName) return;
+
+      await fetch(API + "/items/" + id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName })
+      });
+
       fetchItems();
     }
 
     async function deleteItem(id) {
-      await fetch(API + "/items/" + id, { method: "DELETE" });
+      await fetch(API + "/items/" + id, {
+        method: "DELETE"
+      });
+
       fetchItems();
     }
 
