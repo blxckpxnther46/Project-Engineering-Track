@@ -1,73 +1,138 @@
-# Challenge 1.12 — Build and Deploy Your First AI Chatbot
+# AI Chatbot
 
-## What This Is
+## What I Built
 
-This is the starter repository for Challenge 1.12. The structure is set up. Your job is to fill the gaps.
+I built a fully functional AI chatbot with:
 
-## What Exists
+* A **vanilla JavaScript frontend** for user interaction
+* A **Node.js + Express backend** that securely communicates with an AI model
+* **Conversation context support**, allowing the chatbot to remember previous messages within the same session
 
-| File | Status | What it does |
-|---|---|---|
-| backend/server.js | ⚠️ Incomplete | Express server. /chat route is empty. Fill it. |
-| frontend/index.html | ✅ Ready | Chat UI. Input, send button, display area all wired. |
-| frontend/script.js | ⚠️ Incomplete | sendMessage() exists. Fetch call is missing. Add it. |
-| frontend/style.css | ✅ Ready | Dark chat UI. No changes needed. |
-| backend/.env.example | ✅ Ready | Copy to .env and add your keys. |
+The application allows users to send messages and receive real-time AI-generated responses, maintaining a natural conversation flow.
 
-## What You Need to Add
+---
 
-### 1. Your API keys
-Copy `.env.example` to `.env` inside the `backend/` folder:
-```bash
-cp backend/.env.example backend/.env
+## Features
+
+* Chat UI with message history
+* Send messages via button or Enter key
+* Persistent conversation context (memory)
+* Secure backend API integration
+* Error handling for failed requests
+
+---
+
+## Architecture
+
 ```
-Add your OpenRouter key. Get one at openrouter.ai (free credits included).
+User → Frontend (HTML/CSS/JS) → Backend (/chat) → OpenRouter API
+                                           ↑
+                                API key stored securely here
+```
 
-### 2. The backend /chat route
-Open `backend/server.js`. Find the TODO comment. Implement the AI API call there.
+* The frontend communicates **only with the backend**
+* The backend handles all AI API requests securely
 
-### 3. The frontend fetch call
-Open `frontend/script.js`. Find the TODO comment inside `sendMessage()`. Wire it to your backend.
+---
 
-### 4. Conversation context
-The `messages` array is already declared. Make sure you send the **full array** to the backend every time — not just the latest message. This is what makes the chatbot remember context.
+## API and Model
 
-## Running Locally
+**API:** OpenRouter
+**Model:** openai/gpt-4o-mini
+
+**Why backend only:**
+If the API key is placed in frontend JavaScript, it becomes visible in browser DevTools and can be copied and misused by anyone. By routing requests through a backend server, the key remains hidden and secure, preventing unauthorized usage and potential billing abuse.
+
+**Fallback provider:**
+Google Gemini API (free tier)
+
+**Required changes to switch:**
+
+1. Change base URL to:
+
+   ```
+   https://generativelanguage.googleapis.com/v1beta/openai/
+   ```
+
+2. Change model name to:
+
+   ```
+   gemini-1.5-flash
+   ```
+
+---
+
+## Live Deployment
+
+**Frontend:** https://your-app.netlify.app
+**Backend:** https://your-api.onrender.com
+
+---
+
+## How to Run Locally
+
+### Backend Setup
 
 ```bash
 cd backend
 npm install
+```
+
+Create `.env` file:
+
+```env
+OPENROUTER_API_KEY=your_api_key_here
+PORT=3000
+```
+
+Start server:
+
+```bash
 npm start
 ```
 
-Open `frontend/index.html` in your browser (or use VS Code Live Server).
+---
 
-## The Architecture
+### Frontend Setup
 
-```
-User → Frontend (index.html) → Your Backend (/chat) → OpenRouter API
-                                     ↑
-                              API key lives here
-                              Never in the frontend
-```
+* Open `frontend/index.html` in your browser
+  OR
+* Use VS Code Live Server
 
-## Getting Your API Keys
+---
 
-**OpenRouter (primary):** openrouter.ai → API Keys → Create Key  
-**Gemini (fallback, free):** aistudio.google.com → Get API Key
+## Example Usage
 
-## Deployment
+1. Ask: *"What is JavaScript?"*
+2. Then ask: *"Give me an example of that"*
 
-**Backend:** Render (render.com) — New Web Service → Connect repo → Build: `cd backend && npm install` → Start: `cd backend && npm start` → Add env vars in dashboard
+👉 The chatbot will respond with a **context-aware answer**
 
-**Frontend:** Netlify — Deploy manually → drag the `frontend/` folder
+---
 
-## Live Deployment
+## Security Notes
 
-**Frontend URL:** <!-- Add after deploying -->  
-**Backend URL:** <!-- Add after deploying -->
+* API keys are stored in `.env` and never exposed to the frontend
+* `.env` is excluded using `.gitignore`
+* All AI calls are handled server-side
 
-## What to Submit
+---
 
-1. GitHub PR link (branch: `feature/ai-chatbot`)
-2. Google Drive video link (Anyone with link can view)
+## Future Improvements
+
+* Add user authentication
+* Store chat history in a database
+* Add streaming responses for faster UX
+* Improve UI/UX with typing indicators
+
+---
+
+## Conclusion
+
+This project demonstrates:
+
+* Full-stack AI integration
+* Secure API handling
+* Context-aware chatbot design
+
+It follows best practices for building production-ready AI applications.
