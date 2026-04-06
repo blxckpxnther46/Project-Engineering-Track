@@ -20,7 +20,7 @@ async function addItem() {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       name,
-      quantity: 100
+      owner: "User"
     })
   });
 

@@ -1,3 +1,3 @@
-# FridgePolice Template
+# FridgePolice Prototype
 
-Initial scaffold for prototype.
+Simple roommate food tracking app.
