@@ -27,3 +27,22 @@ model Task {
   status      String   @default("PENDING")
   createdAt   DateTime @default(now())
 }
+
+model Comment {
+  id          Int      @id @default(autoincrement())
+  content     String
+  parentType  String   // "POST" or "ISSUE"
+  parentId    Int
+  createdAt   DateTime @default(now())
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  date        DateTime
+  location    String
+  category    String   @default("OTHER") // CLEANUP, SOCIAL, WORKSHOP, EMERGENCY, OTHER
+  attendees   String   @default("") // JSON array or comma-separated
+  createdAt   DateTime @default(now())
+}

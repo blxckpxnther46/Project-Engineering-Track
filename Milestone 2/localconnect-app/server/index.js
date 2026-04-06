@@ -6,6 +6,8 @@ const postsRoutes = require('./routes/posts');
 const issuesRoutes = require('./routes/issues');
 const tasksRoutes = require('./routes/tasks');
 const metricsRoutes = require('./routes/metrics');
+const commentsRoutes = require('./routes/comments');
+const eventsRoutes = require('./routes/events');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,6 +19,8 @@ app.use('/posts', postsRoutes);
 app.use('/issues', issuesRoutes);
 app.use('/tasks', tasksRoutes);
 app.use('/metrics', metricsRoutes);
+app.use('/comments', commentsRoutes);
+app.use('/events', eventsRoutes);
 
 app.get('/', (req, res) => {
   res.send('LocalConnect API is running...');

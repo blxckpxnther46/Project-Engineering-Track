@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import PostCard from '../components/PostCard';
+import CommentSection from '../components/CommentSection';
 import { getPosts, createPost } from '../services/api';
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [content, setContent] = useState('');
+  const [selectedPostId, setSelectedPostId] = useState(null);
 
   useEffect(() => {
     fetchPosts();
@@ -50,7 +52,28 @@ const Feed = () => {
       </div>
       <div>
         {posts.map(post => (
-          <PostCard key={post.id} post={post} />
+          <div key={post.id}>
+            <PostCard post={post} />
+            {selectedPostId === post.id && (
+              <div className="card" style={{ marginBottom: '1rem' }}>
+                <CommentSection parentType="POST" parentId={post.id} />
+              </div>
+            )}
+            <button
+              onClick={() => setSelectedPostId(selectedPostId === post.id ? null : post.id)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#3b82f6',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                marginBottom: '1rem',
+                textDecoration: 'underline'
+              }}
+            >
+              {selectedPostId === post.id ? 'Hide Discussion' : 'View Discussion'}
+            </button>
+          </div>
         ))}
       </div>
     </div>

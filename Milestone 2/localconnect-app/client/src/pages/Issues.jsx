@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import IssueCard from '../components/IssueCard';
+import CommentSection from '../components/CommentSection';
 import { getIssues, createIssue, updateIssue } from '../services/api';
 
 const Issues = () => {
   const [issues, setIssues] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedIssueId, setSelectedIssueId] = useState(null);
 
   useEffect(() => {
     fetchIssues();
@@ -69,7 +71,28 @@ const Issues = () => {
       </div>
       <div className="grid">
         {issues.map(issue => (
-          <IssueCard key={issue.id} issue={issue} onUpdateStatus={handleUpdateStatus} />
+          <div key={issue.id}>
+            <IssueCard issue={issue} onUpdateStatus={handleUpdateStatus} />
+            {selectedIssueId === issue.id && (
+              <div className="card" style={{ marginBottom: '1rem' }}>
+                <CommentSection parentType="ISSUE" parentId={issue.id} />
+              </div>
+            )}
+            <button
+              onClick={() => setSelectedIssueId(selectedIssueId === issue.id ? null : issue.id)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#3b82f6',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                marginBottom: '1rem',
+                textDecoration: 'underline'
+              }}
+            >
+              {selectedIssueId === issue.id ? 'Hide Discussion' : 'View Discussion'}
+            </button>
+          </div>
         ))}
       </div>
     </div>

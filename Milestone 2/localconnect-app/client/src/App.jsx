@@ -5,7 +5,7 @@ import Feed from './pages/Feed';
 import Issues from './pages/Issues';
 import Tasks from './pages/Tasks';
 import Dashboard from './pages/Dashboard';
-import Leaderboard from './pages/Leaderboard';
+import Events from './pages/Events';
 import './styles/global.css';
 
 function App() {
@@ -17,7 +17,7 @@ function App() {
           <Route path="/feed" element={<Feed />} />
           <Route path="/issues" element={<Issues />} />
           <Route path="/tasks" element={<Tasks />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/events" element={<Events />} />
         </Routes>
       </Layout>
     </Router>
