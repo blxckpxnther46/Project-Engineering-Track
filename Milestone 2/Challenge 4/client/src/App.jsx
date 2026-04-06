@@ -7,13 +7,11 @@ function App() {
   const [tools, setTools] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // MAJOR FRONTEND BUG 1: Infinite Loop / Component Re-mounting
-  // We are missing the dependency array [] in this useEffect.
-  // This causes the component to fetch, set state, re-render, and fetch again indefinitely.
+  // FIXED: Added empty dependency array to prevent infinite loop
   useEffect(() => { 
     console.log("Fetching tools...");
     fetchTools(); 
-  }); 
+  }, []); 
 
   const fetchTools = async () => {
     try {
@@ -33,15 +31,10 @@ function App() {
   };
 
   const handleToolUpdate = (updatedTool) => {
-    // MAJOR FRONTEND BUG 2: Direct State Mutation
-    // Instead of setTools(tools.map(...)), we are modifying the state object directly.
-    // This often causes the UI to not re-render because the state reference hasn't changed.
-    const index = tools.findIndex(t => t.id === updatedTool.id);
-    if (index !== -1) {
-      tools[index] = updatedTool; 
-      // Oops, forgot to call setTools with a new array reference!
-      console.log("Tools mutated directly:", tools);
-    }
+    // FIXED: Properly update state using setTools with immutable pattern
+    setTools(tools.map(tool => 
+      tool.id === updatedTool.id ? updatedTool : tool
+    ));
   };
 
   return (

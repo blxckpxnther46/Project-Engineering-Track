@@ -12,19 +12,24 @@ router.get('/tools', async (req, res) => {
   }
 });
 
-// BUG 1: Tool Creation Does Not Persist
-// The bug here is that we create the tool in memory but don't call Prisma.
+// POST /tools - Create a new tool
 router.post("/tools", async (req, res) => {
-  const toolData = {
-    name: req.body.name,
-    description: req.body.description,
-    isAvailable: true
-  };
+  try {
+    const toolData = {
+      name: req.body.name,
+      description: req.body.description,
+      isAvailable: true
+    };
 
-  // THE BUG: We skip prisma.tool.create() and return a mock object
-  const tool = { id: Date.now(), ...toolData };
+    // FIXED: Now properly saves to database using Prisma
+    const tool = await prisma.tool.create({
+      data: toolData
+    });
 
-  res.status(201).json(tool);
+    res.status(201).json(tool);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // PATCH /tools/:id - Borrow/Return tool
