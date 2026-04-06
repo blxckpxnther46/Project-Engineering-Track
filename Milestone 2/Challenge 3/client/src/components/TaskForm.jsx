@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { createTask } from '../services/api';
-import { Plus } from 'lucide-react';
+import { Plus, Flame } from 'lucide-react';
 
 const TaskForm = ({ onTaskCreated }) => {
   const [title, setTitle] = useState('');
+  const [important, setImportant] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
     try {
-      await createTask(title);
+      await createTask(title, important);
       setTitle('');
+      setImportant(false);
       onTaskCreated();
     } catch (err) {
       console.error('Error creating task:', err);
@@ -30,14 +32,26 @@ const TaskForm = ({ onTaskCreated }) => {
             className="styled-input"
           />
         </div>
-        <button type="submit" className="primary-button ">
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+            <input
+              type="checkbox"
+              checked={important}
+              onChange={(e) => setImportant(e.target.checked)}
+              style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+            />
+            <Flame size={16} style={{ color: '#f97316' }} />
+            Mark as Important (3x points)
+          </label>
+        </div>
+        <button type="submit" className="primary-button" style={{ marginTop: '1rem' }}>
           <Plus size={20} strokeWidth={3} />
           <span>Quick Add</span>
         </button>
       </form>
       <div style={{ marginTop: '2rem', padding: '1rem', borderTop: '1px solid #f1f5f9' }}>
         <p className="text-muted" style={{ fontSize: '0.85rem' }}>
-          Assigning tasks helps our AI calculate your productivity score more accurately.
+          <strong>Scoring:</strong> Create task (+1 pt) → Complete regular task (+5 pts) → Complete important task (+15 pts)
         </p>
       </div>
     </div>

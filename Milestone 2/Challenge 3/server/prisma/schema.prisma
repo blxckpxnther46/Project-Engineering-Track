@@ -10,6 +10,7 @@ model Task {
   id        Int      @id @default(autoincrement())
   title     String
   completed Boolean  @default(false)
+  important Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 

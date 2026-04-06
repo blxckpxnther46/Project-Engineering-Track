@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { SCORE_VALUES, calculateCompletionPoints } = require('../utils/scoreHelper');
 const prisma = new PrismaClient();
 
 const getTasks = async (req, res) => {
@@ -13,26 +14,21 @@ const getTasks = async (req, res) => {
 };
 
 const createTask = async (req, res) => {
-  const { title } = req.body;
+  const { title, important = false } = req.body;
   try {
     const task = await prisma.task.create({
-      data: { title }
+      data: { title, important }
     });
     
-    // TODO: Client mentioned "important tasks" but this was never implemented.
-    // We should probably track if a task is "important" here.
-
-    
-    // BROKEN LOGIC: Inconsistently update score on task creation
-    // This part updates the database record directly
+    // Award points for creating a task (engagement bonus)
     const currentScore = await prisma.score.findFirst();
     if (currentScore) {
       await prisma.score.update({
         where: { id: currentScore.id },
-        data: { value: currentScore.value + 5 }
+        data: { value: currentScore.value + SCORE_VALUES.CREATE_TASK }
       });
     } else {
-      await prisma.score.create({ data: { value: 5 } });
+      await prisma.score.create({ data: { value: SCORE_VALUES.CREATE_TASK } });
     }
 
     res.status(201).json(task);
@@ -43,24 +39,25 @@ const createTask = async (req, res) => {
 
 const updateTask = async (req, res) => {
   const { id } = req.params;
-  const { completed } = req.body;
+  const { completed, important } = req.body;
   try {
     const task = await prisma.task.update({
       where: { id: parseInt(id) },
-      data: { completed }
+      data: {
+        ...(completed !== undefined && { completed }),
+        ...(important !== undefined && { important })
+      }
     });
 
-    // NOTE: productivity score should probably consider task importance.
-    // If a task is "important", it should yield more points.
-
-
-    // BROKEN LOGIC: Completing a task increases score again
-    if (completed) {
+    // Award or adjust points based on status change
+    if (completed !== undefined && completed === true) {
+      // Task was just marked as complete - award points based on importance
+      const pointsEarned = calculateCompletionPoints(task.important);
       const currentScore = await prisma.score.findFirst();
       if (currentScore) {
         await prisma.score.update({
           where: { id: currentScore.id },
-          data: { value: currentScore.value + 10 }
+          data: { value: currentScore.value + pointsEarned }
         });
       }
     }
@@ -74,10 +71,38 @@ const updateTask = async (req, res) => {
 const deleteTask = async (req, res) => {
   const { id } = req.params;
   try {
+    // Get the task before deleting to check its state
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(id) }
+    });
+    
+    if (task) {
+      // If task was completed, deduct the points earned from it
+      if (task.completed) {
+        const pointsEarned = calculateCompletionPoints(task.important);
+        const currentScore = await prisma.score.findFirst();
+        if (currentScore) {
+          await prisma.score.update({
+            where: { id: currentScore.id },
+            data: { value: Math.max(0, currentScore.value - pointsEarned) }
+          });
+        }
+      } else {
+        // If task was not completed, deduct the creation bonus
+        const currentScore = await prisma.score.findFirst();
+        if (currentScore) {
+          await prisma.score.update({
+            where: { id: currentScore.id },
+            data: { value: Math.max(0, currentScore.value - SCORE_VALUES.CREATE_TASK) }
+          });
+        }
+      }
+    }
+    
     await prisma.task.delete({
       where: { id: parseInt(id) }
     });
-    // BROKEN LOGIC: Deleting a task does not reduce the score.
+    
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete task' });
