@@ -8,4 +8,7 @@ CREATE TABLE employees (
 );
 
 --composite index
-CREATE INDEX idx_salary_department ON employees(salary, department);
+DROP INDEX IF EXISTS idx_salary_department;
+
+CREATE INDEX idx_department_salary 
+ON employees(department, salary);
