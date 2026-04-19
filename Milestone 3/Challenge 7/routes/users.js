@@ -2,33 +2,77 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// List all users for the workforce manager
+
+// 🔐 RBAC Filter Function
+function filterUserData(user, role) {
+  if (role === "Admin") return user;
+
+  if (role === "Manager") {
+    return {
+      user_id: user.user_id,
+      name: user.name,
+      email: user.email
+    };
+  }
+
+  if (role === "User") {
+    return {
+      user_id: user.user_id,
+      name: user.name
+    };
+  }
+}
+
+
+// 📌 GET all users (with tenant isolation + RBAC)
 router.get('/', async (req, res) => {
   try {
-    // Deliberately selects all fields, exposing sensitive data
-    const { rows } = await db.query('SELECT * FROM users');
-    res.json(rows);
+    const role = req.query.role || "User";         // simulate logged-in role
+    const tenantId = req.query.tenant_id || 1;     // simulate tenant
+
+    const { rows } = await db.query(
+      'SELECT * FROM users WHERE tenant_id = $1',
+      [tenantId]
+    );
+
+    const filtered = rows.map(user =>
+      filterUserData(user, role)
+    );
+
+    res.json(filtered);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to retrieve users.' });
   }
 });
 
-// Single user profile view
+
+// 📌 GET single user (secure + tenant-safe)
 router.get('/:id', async (req, res) => {
   try {
+    const role = req.query.role || "User";
+    const tenantId = req.query.tenant_id || 1;
     const { id } = req.params;
-    const { rows } = await db.query('SELECT * FROM users WHERE id = $1', [id]);
-    
+
+    const { rows } = await db.query(
+      'SELECT * FROM users WHERE user_id = $1 AND tenant_id = $2',
+      [id, tenantId]
+    );
+
     if (rows.length === 0) {
-      return res.status(404).json({ error: 'User not found.' });
+      return res.status(404).json({ error: 'User not found or access denied.' });
     }
-    
-    res.json(rows[0]);
+
+    const filtered = filterUserData(rows[0], role);
+
+    res.json(filtered);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to find user.' });
   }
 });
+
 
 module.exports = router;
