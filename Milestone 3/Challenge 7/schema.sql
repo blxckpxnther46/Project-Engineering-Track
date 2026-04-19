@@ -1,48 +1,71 @@
--- CorpFlow v1.0 Database Schema
--- Standard tables for users, projects, and billing.
-
 DROP TABLE IF EXISTS billing_details;
 DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS tenants;
 
+-- Tenants
+CREATE TABLE tenants (
+  tenant_id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+-- Users
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(150),
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) DEFAULT 'employee',
-    salary DECIMAL(10,2) -- Base salary for payroll management
+  user_id SERIAL PRIMARY KEY,
+  tenant_id INT NOT NULL,
+  name TEXT,
+  email TEXT,
+  role TEXT,
+  salary NUMERIC,
+  ssn TEXT,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id)
 );
 
+-- Projects
 CREATE TABLE projects (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    status VARCHAR(20) DEFAULT 'active',
-    budget DECIMAL(12,2)
+  project_id SERIAL PRIMARY KEY,
+  tenant_id INT NOT NULL,
+  name TEXT,
+  owner_id INT,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id),
+  FOREIGN KEY (owner_id) REFERENCES users(user_id)
 );
 
+-- Billing
 CREATE TABLE billing_details (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
-    card_holder_name VARCHAR(100),
-    card_last4 VARCHAR(4),
-    expiry_date VARCHAR(5),
-    billing_address TEXT
+  billing_id SERIAL PRIMARY KEY,
+  tenant_id INT NOT NULL,
+  user_id INT,
+  card_last4 TEXT,
+  bank_account TEXT,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id),
+  FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
--- Seed Initial Data
-INSERT INTO users (full_name, email, password_hash, role, salary) VALUES
-('Alice Johnson', 'alice@pouch.io', 'pbkdf2:sha256:600000$hasher$81726a', 'admin', 125000.00),
-('Bob Smith', 'bob@pouch.io', 'pbkdf2:sha256:600000$hasher$81726b', 'manager', 95000.00),
-('Charlie Davis', 'charlie@velocity.com', 'pbkdf2:sha256:600000$hasher$81726c', 'admin', 140000.00),
-('David Miller', 'david@velocity.com', 'pbkdf2:sha256:600000$hasher$81726d', 'employee', 75000.00);
 
-INSERT INTO projects (name, description, status, budget) VALUES
-('Pouch Portal', 'Customer portal for Pouch.io', 'active', 50000.00),
-('Velocity Engine', 'Back-end engine for Velocity', 'active', 120000.00),
-('Secret R&D', null, 'inactive', 250000.00);
+-- Tenants
+INSERT INTO tenants (name) VALUES
+('Pouch'),
+('Velocity');
 
-INSERT INTO billing_details (user_id, card_holder_name, card_last4, expiry_date, billing_address) VALUES
-(1, 'Alice Johnson', '4242', '12/28', '123 Tech Lane, SF'),
-(3, 'Charlie Davis', '9182', '08/26', '789 Velocity Rd, NY');
+-- Users (FIXED column names)
+INSERT INTO users (tenant_id, name, email, role, salary, ssn) VALUES
+(1, 'Alice Johnson', 'alice@pouch.io', 'Admin', 125000.00, '111-22-3333'),
+(1, 'Bob Smith', 'bob@pouch.io', 'Manager', 95000.00, '222-33-4444'),
+(2, 'Charlie Davis', 'charlie@velocity.com', 'Admin', 140000.00, '333-44-5555'),
+(2, 'David Miller', 'david@velocity.com', 'User', 75000.00, '444-55-6666');
+
+-- Projects (make sure owner_id matches user_id)
+INSERT INTO projects (tenant_id, name, owner_id) VALUES
+(1, 'Pouch Portal', 1),
+(2, 'Velocity Engine', 3);
+
+-- Billing
+INSERT INTO billing_details (tenant_id, user_id, card_last4, bank_account) VALUES
+(1, 1, '4242', 'ACC123'),
+(2, 3, '9182', 'ACC456');
+
+
+CREATE INDEX idx_users_tenant ON users(tenant_id);
+CREATE INDEX idx_projects_tenant ON projects(tenant_id);
+CREATE INDEX idx_billing_tenant ON billing_details(tenant_id);

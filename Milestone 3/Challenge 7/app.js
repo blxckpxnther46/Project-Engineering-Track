@@ -28,8 +28,4 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n🚀 CorpFlow SaaS API Running on port ${PORT}`);
-  console.log('------------------------------------------');
-  console.log(`Root:     http://localhost:${PORT}/`);
-  console.log(`Users:    http://localhost:${PORT}/users`);
-  console.log(`Projects: http://localhost:${PORT}/projects\n`);
 });
