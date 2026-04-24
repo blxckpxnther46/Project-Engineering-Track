@@ -6,9 +6,11 @@ export async function listProducts(req, res) {
     const products = await getProducts(req.query);
     res.json(products);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+      if (err.message.includes('Invalid')) {
+        return res.status(400).json({ error: err.message });
   }
+  res.status(500).json({ error: 'Internal Server Error' });
+}
 }
 
 export async function getProduct(req, res) {
@@ -18,7 +20,9 @@ export async function getProduct(req, res) {
     if (!product) return res.status(404).json({ error: 'Product not found' });
     res.json(product);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+      if (err.message.includes('Invalid')) {
+        return res.status(400).json({ error: err.message });
   }
+  res.status(500).json({ error: 'Internal Server Error' });
+}
 }
