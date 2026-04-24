@@ -1,69 +1,11 @@
 # Concurrency Explainer
 
-**Your name:**
-**Date:**
+The original system used a check-then-insert approach which fails under concurrent load. Two users can both see the seat as available and both proceed to book it.
 
----
+This creates a race condition because the check and insert are separate operations. The solution is to enforce uniqueness at the database level using a composite unique constraint on seatId and showId.
 
-## The Root Cause — Why Check-Then-Insert Fails
+The rate limiter prevents excessive requests and protects the server but does not stop race conditions.
 
-<!-- 
-  Explain what a race condition is in the context of this endpoint.
-  Why does checking with findFirst() before creating with create() fail 
-  when two requests arrive at the same millisecond?
-  What is the "gap" between the check and the insert?
-  
-  Minimum: 2 paragraphs
--->
+When duplicate inserts occur, Prisma throws a P2002 error. This is caught and converted into a 409 Conflict response.
 
-Your explanation here.
-
----
-
-## Why the Unique Constraint Fixes It
-
-<!--
-  Explain why moving the check from application code (findFirst) to the
-  database level (@@unique constraint) actually closes the race condition.
-  
-  Why can't application-layer checking solve this, no matter how fast it runs?
-  What does the database do differently that makes it atomic?
-  
-  Minimum: 1 paragraph
--->
-
-Your explanation here.
-
----
-
-## Why Rate Limiting Alone Is Not Enough
-
-<!--
-  Explain why adding express-rate-limit without the @@unique constraint
-  would still allow double bookings.
-  
-  Give a concrete scenario: two users, one request each, both within the limit.
-  What happens without the constraint?
-  
-  Minimum: 1 paragraph
--->
-
-Your explanation here.
-
----
-
-## What P2002 Means and Why 409
-
-<!--
-  What does Prisma error code P2002 mean?
-  Why is 409 Conflict the correct HTTP status to return when it fires?
-  Why not 400 Bad Request? Why not 500 Internal Server Error?
-  
-  Minimum: 1 paragraph
--->
-
-Your explanation here.
-
----
-
-**Total word count:** (aim for 300–600 words across all four sections)
+This ensures one request succeeds and others fail gracefully.
