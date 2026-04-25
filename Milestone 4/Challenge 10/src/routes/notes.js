@@ -1,52 +1,26 @@
-// src/routes/notes.js
 
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// POST /api/notes
-// Creates a new note
-// ❌ FLAW: No validation — empty title is accepted and stored.
-//    Fix required: check that title exists and is not an empty string.
-//    If invalid, return 422 Unprocessable Entity.
-router.post('/', async (req, res, next) => {
-  try {
-    const { title, content } = req.body;
-
-    // Missing validation here — title can be empty, null, or undefined
-    // and the endpoint will still attempt to create a note.
-
-    const note = await prisma.note.create({
-      data: { title, content }
-    });
-
-    res.status(201).json({ note });
-  } catch (err) {
-    next(err);
+router.post('/api/notes', async (req, res) => {
+  const { title } = req.body;
+  if (!title || title.trim() === '') {
+    return res.status(422).json({ message: 'Title is required' });
   }
+  const note = await prisma.note.create({ data: { title } });
+  res.status(201).json({ note });
 });
 
-// GET /api/notes/:id
-// Returns a single note by ID
-// ❌ FLAW: Returns wrong response shape on 404.
-//    Returns { error: 'Not found' } but tests expect { message: 'Note not found' }.
-//    Fix required: change response body to match the expected contract.
-router.get('/:id', async (req, res, next) => {
-  try {
-    const note = await prisma.note.findUnique({
-      where: { id: Number(req.params.id) }
-    });
+router.get('/api/notes/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(404).json({ message: 'Note not found' });
 
-    if (!note) {
-      // ❌ Wrong key — 'error' should be 'message'
-      return res.status(404).json({ error: 'Not found' });
-    }
+  const note = await prisma.note.findUnique({ where: { id } });
+  if (!note) return res.status(404).json({ message: 'Note not found' });
 
-    res.status(200).json({ note });
-  } catch (err) {
-    next(err);
-  }
+  res.status(200).json({ note });
 });
 
 module.exports = router;
