@@ -1,41 +1,22 @@
-// Friday Deploy Disaster - two bugs live in this file.
-//
-// BUG 05 - CORS middleware is missing entirely.
-//   The frontend at http://localhost:5173 will be blocked by the browser
-//   with a CORS error on every request. The API works in Postman (not a
-//   browser) so the developer assumed it was working. It is not.
-//   Fix it
-//
-// BUG 06 - PORT is hardcoded and the Prisma DB URL is passed inline.
-//   Hardcoded values are committed to git history. The database password
-//   is now visible to anyone with repo access.
-//   Fix it
-
+require('dotenv').config();
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
-const userRouter = require('./src/user.controller');
-
-// BUG 06
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: 'postgresql://admin:supersecretpassword@localhost:5432/forge_db',
-    },
-  },
-});
+const cors = require('cors');
 
 const app = express();
+
+app.use(cors({ origin: process.env.FRONTEND_ORIGIN }));
 app.use(express.json());
 
-// BUG 05
+const userController = require('./src/controllers/user.controller');
 
-app.use('/users', userRouter);
+app.get('/users/:id', userController.getUser);
+app.post('/users', userController.createUser);
 
 const errorHandler = require('./src/middleware/errorHandler');
 app.use(errorHandler);
 
-// BUG 06
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 3000;
 
-module.exports = app;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
