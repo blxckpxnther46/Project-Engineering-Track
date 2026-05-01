@@ -1,21 +1,17 @@
+
 {
-  "name": "clean-sweep-backend",
+  "name": "spaghetti-refactor",
   "version": "1.0.0",
-  "description": "Backend architecture refactoring exercise",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
     "dev": "nodemon app.js"
   },
-  "prisma": {
-    "seed": "node prisma/seed.js"
-  },
   "dependencies": {
-    "@prisma/client": "^5.10.0",
+    "@prisma/client": "^5.0.0",
     "express": "^4.18.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0",
-    "prisma": "^5.10.0"
+    "nodemon": "^3.0.0",
+    "prisma": "^5.0.0"
   }
 }
