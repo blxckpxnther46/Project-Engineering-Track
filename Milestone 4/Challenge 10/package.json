@@ -1,0 +1,6 @@
+
+{
+ "scripts": { "test": "jest" },
+ "dependencies": { "express": "^4.18.2", "@prisma/client": "^5.0.0", "supertest": "^6.3.3" },
+ "devDependencies": { "jest": "^29.0.0" }
+}
