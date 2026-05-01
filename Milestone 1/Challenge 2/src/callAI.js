@@ -23,6 +23,7 @@ async function callAI(systemPrompt, userCode) {
         }
     );
 
+    // ✅ MOVE THIS HERE
     const usage = response.data.usage;
 
     const cost =
