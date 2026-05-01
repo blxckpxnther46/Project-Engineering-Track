@@ -1,25 +1,21 @@
-const AppError = require('../utils/AppError');
+function errorHandler(err, req, res, next) {
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Something went wrong';
 
-const errorHandler = (err, req, res, next) => {
-  let error = { ...err };
-  error.message = err.message;
-
-  // Prisma Duplicate Key Error
   if (err.code === 'P2002') {
-    const message = 'A record with that value already exists';
-    error = new AppError(message, 409);
+    statusCode = 409;
+    message = 'Duplicate value error';
   }
 
-  // Prisma Record Not Found Error
   if (err.code === 'P2025') {
-    const message = 'Record not found';
-    error = new AppError(message, 404);
+    statusCode = 404;
+    message = 'Record not found';
   }
 
-  res.status(error.statusCode || 500).json({
+  res.status(statusCode).json({
     error: true,
-    message: error.message || 'Internal Server Error',
+    message,
+    statusCode
   });
-};
-
+}
 module.exports = errorHandler;
