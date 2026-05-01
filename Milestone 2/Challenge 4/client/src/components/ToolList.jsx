@@ -12,9 +12,9 @@ const ToolList = ({ tools, onUpdateTool }) => {
         {tools.length === 0 ? (
           <p className="empty-msg">No tools listed yet. Be the first!</p>
         ) : (
-          /* BUG 3: tool.index is undefined — should be tool.id */
+          /* FIXED: Using tool.id instead of tool.index as key */
           tools.map(tool => (
-            <ToolCard key={tool.index} tool={tool} onUpdate={onUpdateTool} />
+            <ToolCard key={tool.id} tool={tool} onUpdate={onUpdateTool} />
           ))
         )}
       </div>

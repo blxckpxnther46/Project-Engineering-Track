@@ -4,28 +4,19 @@ const ToolCard = ({ tool, onUpdate }) => {
   const [borrowError, setBorrowError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // MAJOR FRONTEND BUG 3: Stale Closures / Race Conditions
-  // The handleBorrow function doesn't use the 'id' correctly from the prop, 
-  // and it ignores the returned data from the server, instead assuming the local state is always right.
+  // FIXED: Proper async handling with server data integration
   const handleBorrow = async () => {
     setBorrowError(false);
     setIsLoading(true);
     
     try {
-      // BUG 2 (Existing): Wrong endpoint
-      const response = await fetch(`/api/tool/${tool.id}`, { method: 'PATCH' });
+      // FIXED: Correct endpoint path (/api/tools/:id instead of /api/tool/:id)
+      const response = await fetch(`/api/tools/${tool.id}`, { method: 'PATCH' });
       
       if (response.ok) {
+        // FIXED: Use the actual updated tool from the database
         const updatedFromDB = await response.json();
-        
-        // MAJOR FRONTEND BUG 4: Logic Error - Incorrect Toggle
-        // Instead of passing the updated tool from the DB, we create a broken object locally.
-        const brokenUpdate = {
-          ...tool,
-          isAvailable: tool.isAvailable // This doesn't actually toggle!
-        };
-        
-        onUpdate(brokenUpdate);
+        onUpdate(updatedFromDB);
       } else {
         setBorrowError(true);
       }
