@@ -1,16 +1,16 @@
 const { Pool } = require('pg');
-require('dotenv').config();
 
-/**
- * Database connection pool.
- * We use a single connection pool for the entire application to simplify 
- * configuration and ensure we stay within the database's connection limits.
- */
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
+    : false
 });
 
 module.exports = {
   query: (text, params) => pool.query(text, params),
-  pool
 };
