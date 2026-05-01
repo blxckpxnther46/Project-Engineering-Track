@@ -1,21 +1,51 @@
+require('dotenv').config();
 const express = require('express');
-const app = express();
-const expenseRoutes = require('./src/routes/expenseRoutes');
-
-// Morgan is installed but we aren't using it as middleware.
-// This results in zero visibility into incoming requests and responses.
 const morgan = require('morgan');
 
+const app = express();
+
+// ✅ Fail fast validation
+const REQUIRED_ENV = ['PORT', 'JWT_SECRET', 'DATABASE_URL'];
+
+const missing = REQUIRED_ENV.filter(key => !process.env[key]);
+
+if (missing.length > 0) {
+  console.error(`[STARTUP ERROR] Missing env variables: ${missing.join(', ')}`);
+  process.exit(1);
+}
+
+// ✅ Request logging
 app.use(express.json());
+app.use(morgan('dev'));
 
-// Routes
-app.use('/expenses', expenseRoutes);
+// Sample route
+app.post('/expenses', (req, res) => {
+  const start = Date.now();
 
-// Hardcoded Port: This violates fail-fast principles and prevents environment portability.
-const PORT = 3000;
+  const expense = req.body;
+
+  console.log(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level: 'INFO',
+    route: 'POST /expenses',
+    payload: expense,
+    status: 201
+  }));
+
+  const duration = Date.now() - start;
+
+  console.log(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level: 'INFO',
+    message: 'Expense created',
+    duration: `${duration}ms`
+  }));
+
+  res.status(201).json({ ok: true });
+});
+
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
-    // Basic logs without request context or status visibility.
-    console.log("Server is running...");
-    console.log("Database connected.");
+  console.log(`[STARTUP] Server running on port ${PORT}`);
 });
