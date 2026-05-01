@@ -1,17 +1,14 @@
-// BUG — The four-parameter error handling middleware is completely missing.
-// to the client when any route calls next(err) or throws unhandled.
-
 const express = require('express');
-const userRoutes = require('./routes/user.routes');
-
 const app = express();
+
 app.use(express.json());
 
+const userRoutes = require('./routes/user.routes');
 app.use('/users', userRoutes);
 
-// BUG — app.use(errorHandler) is intentionally absent here.
+// ✅ error handler LAST
+const errorHandler = require('./middleware/errorHandler');
+app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-module.exports = app;
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
