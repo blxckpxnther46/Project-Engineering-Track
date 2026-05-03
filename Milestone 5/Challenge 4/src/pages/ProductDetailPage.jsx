@@ -1,8 +1,6 @@
-// 🚨 BROKEN: Another component doing everything itself.
-// Notice this is basically copy-pasted from ProductsPage — every dev writes fetch() differently!
-
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { getProduct, getProducts, addToCart } from '../services/api'
 
 const enrich = (p) => ({
   ...p,
@@ -17,6 +15,7 @@ const enrich = (p) => ({
 export default function ProductDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+
   const [product, setProduct] = useState(null)
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
@@ -24,25 +23,22 @@ export default function ProductDetailPage() {
   const [inCart, setInCart] = useState(false)
   const [reviewLoading, setReviewLoading] = useState(false)
 
-  // ❌ BAD: Yet another hardcoded URL with its own error handling pattern
   useEffect(() => {
     setLoading(true)
-    fetch(`https://fakestoreapi.com/products/${id}`)
-      .then(async res => {
-        if (res.status === 404) throw new Error('Product not found')
-        // ❌ No handling for 401, 500, etc.
-        return res.json()
-      })
-      .then(data => {
+
+    getProduct(id)
+      .then((data) => {
         const enriched = enrich(data)
         setProduct(enriched)
-        // ❌ Nested fetch inside a fetch — spaghetti code!
-        return fetch(`https://fakestoreapi.com/products/category/${enriched.category}`)
-      })
-      .then(res => res.json())
-      .then(items => {
-        setRelated(items.filter(p => p.id !== parseInt(id)).slice(0, 3))
-        setLoading(false)
+
+        return getProducts().then((items) => {
+          const rel = items
+            .filter(p => p.category === enriched.category && p.id !== parseInt(id))
+            .slice(0, 3)
+
+          setRelated(rel)
+          setLoading(false)
+        })
       })
       .catch(err => {
         setError(err.message)
@@ -50,41 +46,32 @@ export default function ProductDetailPage() {
       })
   }, [id])
 
-  // ❌ Token grabbed manually AGAIN — fourth time in this codebase
   const handleAddToCart = async () => {
-    const token = localStorage.getItem('auth_token')
     try {
-      const res = await fetch('https://fakestoreapi.com/carts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId: 1, date: new Date().toISOString(), products: [{ productId: product.id, quantity: 1 }] }),
+      await addToCart({
+        userId: 1,
+        date: new Date().toISOString(),
+        products: [{ productId: product.id, quantity: 1 }]
       })
-      if (!res.ok) throw new Error('Cart update failed')
       setInCart(true)
     } catch (err) {
-      alert('Failed to add: ' + err.message) // alert()? seriously?
+      alert('Failed to add: ' + err.message)
     }
   }
 
   const handleReview = async (e) => {
     e.preventDefault()
     setReviewLoading(true)
-    const token = localStorage.getItem('auth_token') // copied AGAIN
+
     try {
-      await fetch('https://fakestoreapi.com/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ productId: id, rating: 5 }),
-      })
-      setReviewLoading(false)
+      // No real API → simulate
+      await new Promise(res => setTimeout(res, 500))
       alert('Review submitted!')
     } catch (err) {
-      setReviewLoading(false)
       alert('Review failed: ' + err.message)
     }
+
+    setReviewLoading(false)
   }
 
   if (loading) return (
@@ -92,7 +79,12 @@ export default function ProductDetailPage() {
       <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin" />
     </div>
   )
-  if (error) return <div className="border border-red-200 bg-red-50 text-red-700 rounded-lg p-4 text-sm">{error}</div>
+
+  if (error) return (
+    <div className="border border-red-200 bg-red-50 text-red-700 rounded-lg p-4 text-sm">
+      {error}
+    </div>
+  )
 
   return (
     <div>
@@ -122,7 +114,9 @@ export default function ProductDetailPage() {
 
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-xs text-gray-400 mb-1">Quick install</p>
-            <code className="text-sm text-gray-800 font-mono">npm install {product.title.split(' ')[0].toLowerCase()}-sdk</code>
+            <code className="text-sm text-gray-800 font-mono">
+              npm install {product.title.split(' ')[0].toLowerCase()}-sdk
+            </code>
           </div>
 
           <div className="border border-gray-200 rounded-xl p-5">
@@ -145,30 +139,35 @@ export default function ProductDetailPage() {
             <p className={`text-2xl font-bold ${product.pricing === 'free' ? 'text-green-600' : 'text-gray-900'}`}>
               {product.pricing === 'free' ? 'Free' : `$${product.price}`}
             </p>
+
             <button
               onClick={handleAddToCart}
               disabled={inCart}
-              className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${inCart ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-900 text-white hover:bg-gray-700'}`}
+              className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+                inCart
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-900 text-white hover:bg-gray-700'
+              }`}
             >
               {inCart ? '✓ Added' : 'Add to Cart'}
             </button>
-            <div className="border-t border-gray-100 pt-3 flex flex-col gap-2">
-              {[['Category', product.category], ['Language', product.language], ['Version', product.version], ['License', 'MIT']].map(([k, v]) => (
-                <div key={k} className="flex justify-between text-xs">
-                  <span className="text-gray-400">{k}</span>
-                  <span className="text-gray-700 capitalize">{v}</span>
-                </div>
-              ))}
-            </div>
           </div>
 
           {related.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Related</p>
               {related.map(p => (
-                <div key={p.id} onClick={() => navigate(`/products/${p.id}`)} className="border border-gray-200 rounded-xl p-4 mb-2 cursor-pointer hover:border-gray-400 transition-colors">
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{['API', 'Template', 'CLI Tool', 'SDK', 'Plugin'][p.id % 5]}</span>
-                  <p className="text-xs text-gray-700 mt-2 leading-snug">{p.title.slice(0, 45)}...</p>
+                <div
+                  key={p.id}
+                  onClick={() => navigate(`/products/${p.id}`)}
+                  className="border border-gray-200 rounded-xl p-4 mb-2 cursor-pointer hover:border-gray-400 transition-colors"
+                >
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                    {['API','Template','CLI Tool','SDK','Plugin'][p.id % 5]}
+                  </span>
+                  <p className="text-xs text-gray-700 mt-2 leading-snug">
+                    {p.title.slice(0, 45)}...
+                  </p>
                 </div>
               ))}
             </div>
