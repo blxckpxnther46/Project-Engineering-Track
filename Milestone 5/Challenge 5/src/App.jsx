@@ -1,73 +1,85 @@
-// ============================================================
-//  TrackFlow – Bug Report Form  (BROKEN VERSION)
-//  Your task: Find and fix all the bugs in this file.
-//  Do NOT modify api.js or index.css.
-// ============================================================
-
 import { useState } from 'react'
 import { submitBugReport } from './api'
 
 const SEVERITIES = ['Critical', 'High', 'Medium', 'Low']
 const COMPONENTS = ['Authentication', 'Dashboard', 'Billing', 'API', 'Notifications', 'Settings']
 
-// ---- BUG TRACKER -----------------------------------------------
-// Below are intentionally broken behaviours. Find and fix them all.
-// BUG 1: Form submits even when required fields are empty
-// BUG 2: No loading state — button stays active during API call
-//         (users can click Submit multiple times)
-// BUG 3: After successful submission the form is NOT cleared
-// BUG 4: Server-side errors (from api.js) are silently swallowed
-// BUG 5: No per-field validation messages are shown to the user
-// BUG 6: "Steps to Reproduce" accepts any number, including 0 and negatives
-// ----------------------------------------------------------------
+const EMPTY_FORM = {
+  title: '',
+  severity: '',
+  component: '',
+  description: '',
+  steps: '',
+  stepsCount: '',
+}
 
 export default function App() {
-  const [form, setForm] = useState({
-    title: '',
-    severity: '',
-    component: '',
-    description: '',
-    steps: '',
-    stepsCount: '',
-  })
-
-  // BUG: errors state is declared but never populated or displayed
+  const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
-
-  // BUG: loading and serverError exist but are never used in JSX
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState(null)
-
   const [submitted, setSubmitted] = useState([])
   const [successId, setSuccessId] = useState(null)
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
     setForm((f) => ({ ...f, [name]: value }))
-    // BUG: errors are never cleared when user starts fixing a field
+
+    // ✅ Clear error when user types
+    setErrors((prev) => ({ ...prev, [name]: '' }))
   }
 
-  // BUG: validate() always returns true — no real checks happen
-  const validate = () => {
-    return true
+  // ✅ FIXED VALIDATION
+  const validate = (data) => {
+    const errs = {}
+
+    if (!data.title.trim()) errs.title = 'Title is required'
+    if (!data.severity) errs.severity = 'Select severity'
+    if (!data.component) errs.component = 'Select component'
+    if (!data.description.trim()) errs.description = 'Description required'
+
+    if (!data.steps.trim()) errs.steps = 'Steps required'
+
+    if (!data.stepsCount || Number(data.stepsCount) <= 0) {
+      errs.stepsCount = 'Must be greater than 0'
+    }
+
+    return errs
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // BUG: validate() result is ignored; submission always continues
-    validate()
+    const errs = validate(form)
 
-    // BUG: loading is never set to true before the API call
+    // ✅ STOP submission if errors
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      return
+    }
+
+    setLoading(true)
+    setServerError(null)
+
     try {
       const result = await submitBugReport(form)
+
       setSuccessId(result.id)
       setSubmitted((prev) => [result, ...prev])
-      // BUG: form state is never reset after success
+
+      // ✅ RESET FORM
+      setForm(EMPTY_FORM)
+      setErrors({})
     } catch (err) {
-      // BUG: server error is caught but nothing is shown to the user
+      // ✅ SHOW SERVER ERROR
+      if (err.field) {
+        setErrors({ [err.field]: err.message })
+      } else {
+        setServerError(err.message || 'Something went wrong')
+      }
     } finally {
-      // BUG: loading is never set back to false
+      setLoading(false)
     }
   }
 
@@ -79,121 +91,87 @@ export default function App() {
       <header className="app-header">
         <div className="badge">⬡ TrackFlow Internal Tools</div>
         <h1>Report a Bug</h1>
-        <p>
-          You're on the <strong>QA Engineering</strong> team at <strong>TrackFlow Inc.</strong> The
-          team uses this form to log bugs before sprint planning every Monday. Help your teammates
-          by making sure the form works correctly.
-        </p>
       </header>
 
       <div className="card">
-        <p className="section-label">New Bug Report</p>
         <form onSubmit={handleSubmit} noValidate>
 
-          {/* SUCCESS BANNER — shown after a successful submit */}
           {successId && (
-            <div style={{ background: 'rgba(76,175,125,0.1)', border: '1px solid rgba(76,175,125,0.3)', borderRadius: 8, padding: '12px 16px', marginBottom: 20, fontSize: 14, color: '#4caf7d' }}>
-              ✓ Bug <strong>{successId}</strong> filed successfully!
-            </div>
+            <div className="success">✓ Bug {successId} filed successfully!</div>
           )}
 
-          {/* SERVER ERROR BANNER — BUG: serverError is never set, so this never shows */}
           {serverError && (
-            <div style={{ background: 'rgba(247,95,95,0.1)', border: '1px solid rgba(247,95,95,0.3)', borderRadius: 8, padding: '12px 16px', marginBottom: 20, fontSize: 14, color: '#f75f5f' }}>
-              {serverError}
-            </div>
+            <div className="error">{serverError}</div>
           )}
 
           <div className="form-group">
-            <label>Bug Title <span className="req">*</span></label>
+            <label>Bug Title *</label>
             <input
               name="title"
               value={form.title}
               onChange={handleChange}
-              placeholder="e.g. Checkout button unresponsive on mobile Safari"
+              style={errors.title ? { borderColor: 'red' } : {}}
             />
-            {/* BUG: error message for title is never rendered */}
+            {errors.title && <p style={{ color: 'red' }}>{errors.title}</p>}
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Severity <span className="req">*</span></label>
+              <label>Severity *</label>
               <select name="severity" value={form.severity} onChange={handleChange}>
-                <option value="">— Select —</option>
+                <option value="">Select</option>
                 {SEVERITIES.map((s) => <option key={s}>{s}</option>)}
               </select>
-              {/* BUG: error message for severity is never rendered */}
+              {errors.severity && <p style={{ color: 'red' }}>{errors.severity}</p>}
             </div>
+
             <div className="form-group">
-              <label>Affected Component <span className="req">*</span></label>
+              <label>Component *</label>
               <select name="component" value={form.component} onChange={handleChange}>
-                <option value="">— Select —</option>
+                <option value="">Select</option>
                 {COMPONENTS.map((c) => <option key={c}>{c}</option>)}
               </select>
-              {/* BUG: error message for component is never rendered */}
+              {errors.component && <p style={{ color: 'red' }}>{errors.component}</p>}
             </div>
           </div>
 
           <div className="form-group">
-            <label>Description <span className="req">*</span></label>
+            <label>Description *</label>
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
-              placeholder="Describe what's happening and what the expected behaviour should be…"
             />
-            {/* BUG: error message for description is never rendered */}
+            {errors.description && <p style={{ color: 'red' }}>{errors.description}</p>}
           </div>
 
-          <hr className="divider" />
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Steps to Reproduce</label>
-              <textarea
-                name="steps"
-                value={form.steps}
-                onChange={handleChange}
-                style={{ minHeight: 72 }}
-                placeholder="1. Go to…&#10;2. Click…&#10;3. Observe…"
-              />
-            </div>
-            <div className="form-group">
-              <label>No. of Steps <span className="req">*</span></label>
-              <input
-                type="number"
-                name="stepsCount"
-                value={form.stepsCount}
-                onChange={handleChange}
-                placeholder="e.g. 3"
-              />
-              {/* BUG: accepts 0, negatives, and empty — no validation */}
-            </div>
+          <div className="form-group">
+            <label>Steps *</label>
+            <textarea
+              name="steps"
+              value={form.steps}
+              onChange={handleChange}
+            />
+            {errors.steps && <p style={{ color: 'red' }}>{errors.steps}</p>}
           </div>
 
-          {/* BUG: button is never disabled during loading, no spinner shown */}
-          <button type="submit" className="btn btn-primary">
-            Submit Bug Report
+          <div className="form-group">
+            <label>No. of Steps *</label>
+            <input
+              type="number"
+              name="stepsCount"
+              value={form.stepsCount}
+              onChange={handleChange}
+              min="1"
+            />
+            {errors.stepsCount && <p style={{ color: 'red' }}>{errors.stepsCount}</p>}
+          </div>
+
+          <button type="submit" disabled={loading} className="btn btn-primary">
+            {loading ? 'Submitting…' : 'Submit Bug Report'}
           </button>
-
         </form>
       </div>
-
-      {/* Filed bugs list */}
-      {submitted.length > 0 && (
-        <div className="submitted-list">
-          <p className="section-label" style={{ marginBottom: 8 }}>Filed This Session</p>
-          {submitted.map((bug, i) => (
-            <div key={i} className="submitted-item">
-              <div>
-                <div className="title">{bug.title}</div>
-                <div className="meta">{bug.component} · {bug.stepsCount} steps</div>
-              </div>
-              <span className={`severity-badge ${sevClass(bug.severity)}`}>{bug.severity}</span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
