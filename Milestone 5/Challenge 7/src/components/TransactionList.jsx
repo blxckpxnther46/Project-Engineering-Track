@@ -1,22 +1,36 @@
 import React from 'react';
+import { FixedSizeList as List } from 'react-window';
 import TransactionRow from './TransactionRow';
 
 const TransactionList = ({ transactions, onSelect }) => {
+  const itemCount = transactions.length;
+  const itemSize = 44;
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col h-[700px]">
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {/* 
-          DELIBERATE PERFORMANCE PROBLEM:
-          Rendering all 2,000+ items at once instead of using virtualization 
-        */}
-        {transactions.length > 0 ? (
-          transactions.map((transaction) => (
-            <TransactionRow 
-              key={transaction.id} 
-              transaction={transaction} 
-              onSelect={onSelect} 
-            />
-          ))
+      <div className="flex-1">
+        {itemCount > 0 ? (
+          <List
+            height={628}
+            width="100%"
+            itemCount={itemCount}
+            itemSize={itemSize}
+            itemData={{ transactions, onSelect }}
+            className="custom-scrollbar"
+          >
+            {({ index, style, data }) => {
+              const transaction = data.transactions[index];
+
+              return (
+                <div style={style}>
+                  <TransactionRow
+                    transaction={transaction}
+                    onSelect={data.onSelect}
+                  />
+                </div>
+              );
+            }}
+          </List>
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-gray-500 p-8 space-y-3">
              <div className="p-4 bg-gray-50 rounded-full">
@@ -40,3 +54,4 @@ const TransactionList = ({ transactions, onSelect }) => {
 };
 
 export default TransactionList;
+
