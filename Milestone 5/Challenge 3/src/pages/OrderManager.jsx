@@ -37,26 +37,12 @@ export default function OrderManager() {
     setSaving(orderId);
     await updateOrderStatus(orderId, newStatus);
 
-    // ─── BUG ZONE ──────────────────────────────────────
-    //
-    // Bug #3: Change an order's status via the dropdown.
-    //         The API call succeeds, but the coloured badge
-    //         on screen NEVER updates.
-    //
-    // Look at how `setOrders` is being called below.
-    // What reference is being passed? Does React see a
-    // difference between the old state and new state?
-    //
-    // ───────────────────────────────────────────────────
-
-    const updatedOrders = orders;                  // ❌ same array reference
-    const order = updatedOrders.find(
-      (o) => o.id === orderId
+    // ✅ FIXED (IMMUTABLE UPDATE)
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId ? { ...o, status: newStatus } : o
+      )
     );
-    if (order) {
-      order.status = newStatus;                    // ❌ mutates existing object
-    }
-    setOrders(updatedOrders);                      // ❌ React: "same ref → skip re-render"
 
     setSaving(null);
   };
