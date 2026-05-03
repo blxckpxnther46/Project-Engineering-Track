@@ -1,12 +1,6 @@
-// 🚨 BROKEN: This component is doing WAY too much.
-// It mixes UI, data fetching, error handling all in one place.
-// As a new dev joining this team, your job is to clean this up!
-
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-
-// ❌ BAD: API URL hardcoded at the top — what if it changes?
-const BASE_URL = 'https://fakestoreapi.com'
+import { getProducts, getCategories, addToCart } from '../services/api'
 
 const enrich = (p) => ({
   ...p,
@@ -26,57 +20,36 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('all')
 
-  // ❌ BAD: Raw fetch with no interceptors, no token injection, inconsistent error handling
   useEffect(() => {
     setLoading(true)
-    fetch('https://fakestoreapi.com/products') // hardcoded again!
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load products')
-        return res.json()
-      })
+
+    getProducts()
       .then(data => {
         setProducts(data.map(enrich))
         setLoading(false)
       })
       .catch(err => {
-        setError(err.message) // no global error handler — each component reinvents the wheel
+        setError(err.message)
         setLoading(false)
       })
-  }, [])
 
-  // ❌ BAD: Second separate fetch — duplicated pattern, no code sharing
-  useEffect(() => {
-    fetch('https://fakestoreapi.com/products/categories') // another hardcoded URL
-      .then(res => res.json()) // not even checking res.ok!
+    getCategories()
       .then(data => setCategories(['all', ...data]))
-      .catch(err => console.error('Failed to load categories:', err)) // silently failing!
+      .catch(() => {})
   }, [])
 
-  // ❌ BAD: Token grabbed manually every time, copy-pasted pattern
   const handleAddToCart = (product) => {
-    const token = localStorage.getItem('auth_token')
-
-    fetch('https://fakestoreapi.com/carts', { // URL #3 hardcoded
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // repeated in every component
-      },
-      body: JSON.stringify({
-        userId: 1,
-        date: new Date().toISOString(),
-        products: [{ productId: product.id, quantity: 1 }],
-      }),
+    addToCart({
+      userId: 1,
+      date: new Date().toISOString(),
+      products: [{ productId: product.id, quantity: 1 }],
     })
-      .then(res => res.json())
       .then(() => {
         setCart(prev => [...prev, product.id])
         setCartMsg(`Added "${product.title.slice(0, 25)}..."`)
         setTimeout(() => setCartMsg(''), 3000)
       })
-      .catch(err => {
-        // ❌ No global 401 handling — user just sees a broken UI
-        console.error('Cart error:', err)
+      .catch(() => {
         setCartMsg('Failed to add to cart')
         setTimeout(() => setCartMsg(''), 3000)
       })
@@ -109,66 +82,28 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="flex flex-col gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search tools..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="w-full max-w-xs border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400"
-        />
-        <div className="flex flex-wrap gap-2">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors capitalize ${
-                selectedCategory === cat
-                  ? 'bg-gray-900 text-white border-gray-900'
-                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
+      <input
+        value={searchTerm}
+        onChange={e => setSearchTerm(e.target.value)}
+        placeholder="Search tools..."
+        className="w-full max-w-xs border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none"
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         {filtered.map(product => (
-          <div key={product.id} className="border border-gray-200 rounded-xl p-5 flex flex-col gap-3 hover:border-gray-400 transition-colors">
-            <div className="flex gap-2">
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{product.type}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${product.pricing === 'free' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
-                {product.pricing === 'free' ? 'Free' : `$${product.price}`}
-              </span>
-            </div>
-            <Link to={`/products/${product.id}`} className="text-sm font-semibold text-gray-900 hover:text-gray-600 leading-snug">
-              {product.title.slice(0, 55)}{product.title.length > 55 ? '...' : ''}
-            </Link>
-            <p className="text-xs text-gray-400 leading-relaxed flex-1">{product.description.slice(0, 75)}...</p>
-            <div className="flex gap-4 text-xs text-gray-400">
-              <span>⭐ {product.stars}</span>
-              <span>↓ {product.downloads.toLocaleString()}</span>
-            </div>
+          <div key={product.id} className="border rounded-xl p-5 flex flex-col gap-3">
+            <Link to={`/products/${product.id}`}>{product.title}</Link>
+
             <button
               onClick={() => handleAddToCart(product)}
               disabled={cart.includes(product.id)}
-              className={`w-full text-sm py-2 rounded-lg font-medium transition-colors ${
-                cart.includes(product.id)
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-900 text-white hover:bg-gray-700'
-              }`}
+              className="bg-gray-900 text-white py-2 rounded-lg"
             >
               {cart.includes(product.id) ? '✓ In Cart' : 'Add to Cart'}
             </button>
           </div>
         ))}
       </div>
-
-      {filtered.length === 0 && (
-        <p className="text-center text-gray-400 py-16 text-sm">No tools found for "{searchTerm}"</p>
-      )}
     </div>
   )
 }
