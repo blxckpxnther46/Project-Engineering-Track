@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { fetchOrders } from '../mockApi'
 
-// Skeleton row
+//  Final Fix - All 4 states (loading, error, empty, success) handled in one place for better readability and maintainability
 function SkeletonRow() {
   return (
     <tr>
