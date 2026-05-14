@@ -8,6 +8,7 @@ const Transactions = () => {
   const [selectedId, setSelectedId] = useState(null);
 
   const selectedTransaction = filteredTransactions.find(t => t.id === selectedId);
+  const handleSelect = useCallback((id) => {setSelectedId(id);}, []);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
@@ -80,7 +81,7 @@ const Transactions = () => {
           */}
           <TransactionList 
             transactions={filteredTransactions} 
-            onSelect={(id) => setSelectedId(id)} 
+            onSelect={handleSelect} 
           />
         </div>
 

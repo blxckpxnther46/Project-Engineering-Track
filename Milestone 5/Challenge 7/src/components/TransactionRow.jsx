@@ -1,9 +1,9 @@
 import React from 'react';
 import { CreditCard, Calendar, ShoppingBag, Tv, Utensils, Truck, Zap } from 'lucide-react';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-const cn = (...inputs) => twMerge(clsx(inputs));
+const cn = (...inputs) => twMerge(clsx(...inputs));
 
 const CATEGORY_ICONS = {
   Shopping: ShoppingBag,
@@ -27,9 +27,8 @@ const STATUS_COLORS = {
   failed: "bg-red-100 text-red-700",
 };
 
-// DELIBERATE PERFORMANCE PROBLEM:
-// This component is NOT wrapped in React.memo()
-const TransactionRow = ({ transaction, onSelect }) => {
+// Wrap component in React.memo() to prevent unnecessary re-renders
+const TransactionRow = React.memo(({ transaction, onSelect }) => {
   const Icon = CATEGORY_ICONS[transaction.category] || CreditCard;
   const dateStr = new Date(transaction.date).toLocaleDateString('en-US', {
     month: 'short',
@@ -80,6 +79,8 @@ const TransactionRow = ({ transaction, onSelect }) => {
       </div>
     </div>
   );
-};
+});
+
+TransactionRow.displayName = 'TransactionRow';
 
 export default TransactionRow;
