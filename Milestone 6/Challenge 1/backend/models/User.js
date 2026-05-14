@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      // No minlength, no select: false, no pre-save hook
+      select: false, // Prevent password from being returned in queries by default
     },
   },
   { timestamps: true }
