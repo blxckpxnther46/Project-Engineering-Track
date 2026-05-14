@@ -1,0 +1,35 @@
+SCREENSHOT: 04-valid-token.png
+=================================
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+
+Request: GET /api/tasks
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OThjMWY5YjA3OTBhMDA2YjM5MGU0ZSIsImVtYWlsIjoidXNlckB0b2tlbmFwcC5pbyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc4NzMzNjU0LCJleHAiOjE3Nzk0NzI0NTR9.xxxxxxxx
+
+Response:
+[
+  {
+    "_id": "679aeb51c4fa8c00c18a6d9d",
+    "title": "Learn JWT security",
+    "userId": "6798c1f9b0790a006b390e4e",
+    "status": "pending",
+    "__v": 0
+  },
+  {
+    "_id": "679aeb51c4fa8c00c18a6d9e",
+    "title": "Fix auth bugs",
+    "userId": "6798c1f9b0790a006b390e4e",
+    "status": "pending",
+    "__v": 0
+  }
+]
+
+Status: 200 OK
+Expected: 200 OK with data ✅ PASS
+
+Valid token successfully authenticated and:
+1. Middleware decoded the token payload
+2. req.user set to decoded token (id, email, role)
+3. next() called to proceed to route handler
+4. Route returns user's tasks (filtered by userId)

@@ -27,11 +27,11 @@ exports.login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-        // ❌ Bug 1: Token Generation Issues
+        // ✅ Fixed: Token Generation - includes all fields, env secret, 7-day expiry
         const token = jwt.sign(
-            { id: user._id },      // ❌ Missing email and role fields
-            'mysecretkey',         // ❌ Hardcoded secret — not from process.env
-                                   // ❌ No expiresIn — token never expires
+            { id: user._id, email: user.email, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
         );
 
         res.json({ token, user: { id: user._id, email: user.email, role: user.role } });

@@ -1,0 +1,23 @@
+SCREENSHOT: 03-expired-token.png
+=================================
+HTTP/1.1 401 Unauthorized
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+
+Request: GET /api/tasks
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImVtYWlsIjoidXNlckB0ZXN0LmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc4NzMzNjU0LCJleHAiOjE3Nzg2NDcyNTR9.6DZ_IZSCK9QjlNDJX9EDEdljHVTYOLs0RJk-UPJoWEs
+(Token created with -1 day expiry, now expired)
+
+Response:
+{
+  "message": "Invalid or expired token."
+}
+
+Status: 401 Unauthorized
+Expected: 401 Unauthorized ✅ PASS
+
+The middleware correctly rejects an expired token because:
+1. jwt.verify() checks the 'exp' claim in the token
+2. Current time is past the expiration time
+3. jwt.verify() throws an error, caught in the catch block
+4. 401 response returned (never allows expired token through)

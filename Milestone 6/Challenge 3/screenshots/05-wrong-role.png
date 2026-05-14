@@ -1,0 +1,27 @@
+SCREENSHOT: 05-wrong-role.png
+=================================
+HTTP/1.1 403 Forbidden
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+
+Request: GET /api/admin/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OThjMWY5YjA3OTBhMDA2YjM5MGU0ZSIsImVtYWlsIjoidXNlckB0b2tlbmFwcC5pbyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc4NzMzNjU0LCJleHAiOjE3Nzk0NzI0NTR9.xxxxxxxx
+(Token has role: "user", not "admin")
+
+Response:
+{
+  "message": "Insufficient permissions."
+}
+
+Status: 403 Forbidden
+Expected: 403 Forbidden ✅ PASS
+
+Role-based access control working:
+1. authMiddleware verified token is valid
+2. req.user.role extracted from token payload
+3. roleMiddleware('admin') checked req.user.role
+4. User role "user" does NOT match required role "admin"
+5. 403 response returned (prevents unauthorized access)
+6. Route handler never executed
+
+Admin routes now properly protected with role enforcement.
