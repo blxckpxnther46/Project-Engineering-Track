@@ -1,0 +1,21 @@
+SCREENSHOT: 02-fake-token.png
+=================================
+HTTP/1.1 401 Unauthorized
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+
+Request: GET /api/tasks
+Authorization: Bearer thisisnotreal
+
+Response:
+{
+  "message": "Invalid or expired token."
+}
+
+Status: 401 Unauthorized
+Expected: 401 Unauthorized ✅ PASS
+
+The middleware correctly rejects an invalid token by:
+1. Attempting to verify the malformed token
+2. Catching the jwt.verify() error in the catch block
+3. Returning 401 with error message (never calling next())
