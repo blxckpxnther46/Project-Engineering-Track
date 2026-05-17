@@ -10,6 +10,8 @@ const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       req.user = await User.findById(decoded.userId).select('-password');
+      // ✅ Ensure role from token is available even if not re-fetched
+      req.user.role = decoded.role;
       next();
     } catch (error) {
       console.error(error);
