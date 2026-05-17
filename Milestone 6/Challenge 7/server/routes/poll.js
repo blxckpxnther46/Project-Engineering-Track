@@ -24,10 +24,9 @@ router.post("/vote", authMiddleware, (req, res) => {
     return res.status(400).json({ message: "Option ID is required" });
   }
 
-  // BUG: THE LOGIC IS INTENTIONALLY FLAWED (MOST BUGS IN BACKEND)
-  // It checks if 'userId' (numeric) is equal to 'email' (string)!
-  // This will ALWAYS be false, allowing infinite voting from one person!
-  const alreadyVoted = votedUserIds.find(id => id === req.user.email);
+  // FIXED: Use consistent userId comparison with proper type checking
+  // Check if user has already voted using the same ID value stored in votedUserIds
+  const alreadyVoted = votedUserIds.includes(userId);
   
   if (alreadyVoted) {
     return res.status(400).json({ message: "You have already voted!" });
@@ -39,7 +38,7 @@ router.post("/vote", authMiddleware, (req, res) => {
   }
 
   poll.count += 1;
-  votedUserIds.push(userId); // Actually stores ID, but checks against email above!
+  votedUserIds.push(userId); // Stores ID consistently
 
   res.json({ message: "Vote cast successfully" });
 });
