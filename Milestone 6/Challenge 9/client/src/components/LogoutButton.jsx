@@ -1,15 +1,25 @@
 
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/client';
 
 const LogoutButton = () => {
-    const { logout } = useAuth();
+    const { logout, token } = useAuth();
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        // BROKEN PART 6: Only frontend logic, no server-side invalidation
-        logout();
-        navigate('/login');
+    const handleLogout = async () => {
+        try {
+            // FIXED: Call server logout endpoint to blacklist token
+            if(token) {
+              await api.post('/auth/logout');
+            }
+        } catch (err) {
+            console.error('Logout failed:', err);
+        } finally {
+            // FIXED: Then clear frontend state
+            logout();
+            navigate('/login');
+        }
     };
 
     return (

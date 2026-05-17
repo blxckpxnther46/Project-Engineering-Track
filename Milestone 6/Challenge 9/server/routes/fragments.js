@@ -9,9 +9,8 @@ router.get('/', (req, res) => {
   res.json(fragments);
 });
 
-// BROKEN PART 4: Missing role checks/poor validation
-// Any logged in user can add fragment (should be Contributor and above)
-router.post('/', auth, (req, res) => {
+// FIXED: Add role check for Contributors and above
+router.post('/', auth, roleCheck(['contributor', 'curator', 'admin']), (req, res) => {
   const { content, parentId } = req.body;
   const newFrag = {
     id: Date.now().toString(),
@@ -19,31 +18,37 @@ router.post('/', auth, (req, res) => {
     parentId,
     userId: req.user.userId,
     author: users.find(u => u.id === req.user.userId)?.email,
-    status: 'published', // Automatically published for now
+    status: 'pending', // Start as pending
     createdAt: new Date()
   };
   fragments.push(newFrag);
   res.status(201).json(newFrag);
 });
 
-// BROKEN PART 4: No owner check for contributors
-router.put('/:id', auth, (req, res) => {
+// FIXED: Check ownership - Contributors can only edit their own fragments
+router.put('/:id', auth, roleCheck(['contributor', 'curator', 'admin']), (req, res) => {
   const frag = fragments.find(f => f.id === req.params.id);
   if(!frag) return res.status(404).json({ error: 'Fragment not found' });
+  
+  // Ownership check: user must be the author or an admin/curator
+  if(frag.userId !== req.user.userId && !['curator', 'admin'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'You can only edit your own fragments' });
+  }
+  
   frag.content = req.body.content;
   res.json(frag);
 });
 
-// BROKEN PART 4: No Curator requirement
-router.post('/:id/approve', auth, (req, res) => {
+// FIXED: Require Curator role
+router.post('/:id/approve', auth, roleCheck(['curator', 'admin']), (req, res) => {
   const frag = fragments.find(f => f.id === req.params.id);
   if(!frag) return res.status(404).json({ error: 'Fragment not found' });
   frag.status = 'published';
   res.json(frag);
 });
 
-// BROKEN PART 4: Any user can delete, should be Admin only
-router.delete('/:id', auth, (req, res) => {
+// FIXED: Require Admin role
+router.delete('/:id', auth, roleCheck(['admin']), (req, res) => {
   const index = fragments.findIndex(f => f.id === req.params.id);
   if (index === -1) return res.status(404).json({ error: 'Not found' });
   fragments.splice(index, 1);

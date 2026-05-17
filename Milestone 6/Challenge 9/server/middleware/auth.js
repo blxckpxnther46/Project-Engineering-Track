@@ -7,10 +7,16 @@ const auth = (req, res, next) => {
   if(!token) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
-    const decoded = verifyToken(token.split(' ')[1]);
-    req.user = decoded; // BROKEN PART 2: req.user.role will be undefined
+    const tokenValue = token.split(' ')[1];
     
-    // BROKEN PART 6: No blacklist check here
+    // FIXED: Check if token is blacklisted
+    if(blacklist.includes(tokenValue)) {
+      return res.status(401).json({ error: 'Token has been revoked' });
+    }
+    
+    const decoded = verifyToken(tokenValue);
+    // FIXED: Role now comes from JWT payload
+    req.user = decoded;
     next();
   } catch (err) {
     res.status(401).json({ error: 'Auth failed' });
