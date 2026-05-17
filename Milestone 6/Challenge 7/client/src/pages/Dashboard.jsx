@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { getPoll, vote } from '../api/poll';
 import { LogOut, RefreshCcw, Vote, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [voting, setVoting] = useState(null);
@@ -20,7 +22,14 @@ const Dashboard = () => {
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to fetch poll', err);
-      // INTENTIONAL: NO REDIRECTION ON FAIL DURING POLLING
+      // FIXED: Stop polling interval on authentication errors
+      if (err.response && err.response.status === 401) {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+        logout();
+        navigate('/login');
+      }
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -43,9 +52,17 @@ const Dashboard = () => {
       await vote(optionId);
       await fetchPoll();
     } catch (err) {
-      // INTENTIONAL MISHANDLING: JUST SHOW ALERT
-      alert(err.response?.data?.message || 'Vote failed. Token might be expired.');
-      // The user remains on the dashboard, and the polling continues even if 401 or 500
+      // FIXED: Handle authentication errors by stopping polling and redirecting
+      if (err.response && err.response.status === 401) {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+        alert('Your session has expired. Please login again.');
+        logout();
+        navigate('/login');
+      } else {
+        alert(err.response?.data?.message || 'Vote failed. Please try again.');
+      }
     } finally {
       setVoting(null);
     }
@@ -67,7 +84,13 @@ const Dashboard = () => {
           </div>
         </div>
         <button
-          onClick={logout}
+          onClick={() => {
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+            }
+            logout();
+            navigate('/login');
+          }}
           className="flex items-center space-x-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2 rounded-lg transition-colors border border-red-500/50 font-bold"
         >
           <LogOut size={18} />
