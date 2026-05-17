@@ -1,30 +1,39 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import jwt_decode from 'jwt-decode';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
-  const [role, setRole] = useState(localStorage.getItem('role')); // BROKEN PART 3: Storing role in localStorage
+  const [role, setRole] = useState(null);
 
   useEffect(() => {
-    if(token && role) {
-        setUser({ token, role });
+    if(token) {
+      try {
+        // FIXED: Decode role from JWT token instead of localStorage
+        const decoded = jwt_decode(token);
+        setRole(decoded.role);
+        setUser({ token, role: decoded.role });
+      } catch (err) {
+        console.error('Invalid token');
+        localStorage.removeItem('token');
+        setToken(null);
+        setRole(null);
+        setUser(null);
+      }
     }
-  }, [token, role]);
+  }, [token]);
 
   const login = (data) => {
     localStorage.setItem('token', data.token);
-    localStorage.setItem('role', data.user.role); // BROKEN PART 3: Storing role in localStorage
     setToken(data.token);
-    setRole(data.user.role);
-    setUser(data.user);
+    // FIXED: Don't store role in localStorage - it's decoded from JWT
   };
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('role');
     setToken(null);
     setRole(null);
     setUser(null);
